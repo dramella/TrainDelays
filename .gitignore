@@ -1,5 +1,7 @@
 .DS_Store
 Zone.Identifier
+.envrc
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -8,7 +10,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+#
 # Distribution / packaging
 .Python
 build/
