@@ -1,19 +1,20 @@
 """
-This is the code for a function that cleans the data for the files 
+This is the code for a function that cleans the data for the files from the 2018/2019 data.
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler
 
 #Must import the above first to make the function work.
 
 !pwd
 
-df = pd.read_csv('/home/ben/code/MathmoBen/TrainDelays/All Delays 2018-19 P03.csv')
+df = pd.read_csv('/home/ben/code/MathmoBen/TrainDelays/All Delays 2018-19.csv')
 
 df.shape
 """
-
+# 
 def cleaner18(df):
 
     df_drop = df.drop(columns = ['FINANCIAL_YEAR_AND_PERIOD',
@@ -64,6 +65,10 @@ def cleaner18(df):
     df_big['DELAYS'] = df_big['PERFORMANCE_EVENT_CODE_C'] + df_big['PERFORMANCE_EVENT_CODE_D'] + df_big['PERFORMANCE_EVENT_CODE_O'] + df_big['PERFORMANCE_EVENT_CODE_P'] + df_big['PERFORMANCE_EVENT_CODE_S'] + df_big['PERFORMANCE_EVENT_CODE_F']
 
     df_big.drop(columns = ['PERFORMANCE_EVENT_CODE_A', 'PERFORMANCE_EVENT_CODE_M', 'PERFORMANCE_EVENT_CODE_C', 'PERFORMANCE_EVENT_CODE_D', 'PERFORMANCE_EVENT_CODE_O', 'PERFORMANCE_EVENT_CODE_P', 'PERFORMANCE_EVENT_CODE_S', 'PERFORMANCE_EVENT_CODE_F'], inplace=True)
+
+    scaler = MinMaxScaler()
+    scaler.fit(df_big[['PFPI_MINUTES']])
+    df_big['PFPI_MINUTES'] = scaler.transform(df_big[['PFPI_MINUTES']])
 
     return df_big
 
