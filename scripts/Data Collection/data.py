@@ -38,20 +38,3 @@ def load_data_to_bq(
     result = job.result()
 
     print(f'✅ Data saved to BQ')
-
-def clean_columns_2019(df):
-    # Drop na rows
-    df.dropna(inplace=True, subset=['incident_number'])
-    # Change incident dtype to int
-    df.incident_number = df.incident_number.astype(int)
-    # Change start_stanox_code dtype to int
-    df.start_stanox = df.start_stanox.astype(int)
-    # Change end_stanox_code dtype to int
-    df.end_stanox = df.end_stanox.astype(int)
-    # Drop Unamed 0 columns
-    if 'Unnamed: 0' in df.columns:
-        df.drop(columns=['Unnamed: 0'], inplace=True)
-
-    print('✅ Data Cleaned')
-
-    return df
