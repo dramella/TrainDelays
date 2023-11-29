@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import FunctionTransformer, Pipeline
 
-def process_2019(df):
+unique_TOC_codes = []
+
+def process_2019(df, unique_vals):
     # Basic Data Cleaning
     df.drop(columns=['TRAILING_LOAD_AFFECTED','TIMING_LOAD_AFFECTED', 'UNIT_CLASS_AFFECTED',
                      'INCIDENT_EQUIPMENT','TRUST_TRAIN_ID_REACT','TRUST_TRAIN_ID_RESP',
@@ -37,7 +40,11 @@ def process_2019(df):
        'PERFORMANCE_EVENT_CODE_M', 'PERFORMANCE_EVENT_CODE_O',
        'PERFORMANCE_EVENT_CODE_P', 'PERFORMANCE_EVENT_CODE_S'], inplace=True)
 
+    scaler = StandardScaler()
+    X_fitted = scaler.fit(df[['PFPI_MINUTES']])
+    df['PFPI_MINUTES'] = scaler.transform(df[['PFPI_MINUTES']])
 
+    df = missing_columns(df, unique_vals)
     return df
 
 # These function accounts for the missing TOC codes and adds them to each csv
@@ -58,7 +65,3 @@ def missing_columns(df, unique_vals):
         if f'OPERATOR_AFFECTED_{val}' not in df.columns:
             df[f'OPERATOR_AFFECTED_{val}'] = 0
     return df
-
-
-def full_preprocess(df):
-    pass
