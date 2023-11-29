@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import FunctionTransformer, Pipeline
 
 def process_2019(df, unique_vals):
     # Basic Data Cleaning
@@ -36,6 +37,10 @@ def process_2019(df, unique_vals):
        'PERFORMANCE_EVENT_CODE_D', 'PERFORMANCE_EVENT_CODE_F',
        'PERFORMANCE_EVENT_CODE_M', 'PERFORMANCE_EVENT_CODE_O',
        'PERFORMANCE_EVENT_CODE_P', 'PERFORMANCE_EVENT_CODE_S'], inplace=True)
+
+    scaler = StandardScaler()
+    X_fitted = scaler.fit(df[['PFPI_MINUTES']])
+    df['PFPI_MINUTES'] = scaler.transform(df[['PFPI_MINUTES']])
 
     df = missing_columns(df, unique_vals)
     return df
