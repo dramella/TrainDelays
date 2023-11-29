@@ -3,8 +3,6 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import FunctionTransformer, Pipeline
 
-unique_TOC_codes = []
-
 def process_2019(df, unique_vals):
     # Basic Data Cleaning
     df.drop(columns=['TRAILING_LOAD_AFFECTED','TIMING_LOAD_AFFECTED', 'UNIT_CLASS_AFFECTED',
