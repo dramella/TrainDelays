@@ -86,7 +86,7 @@ def mapping_stanox_geo_coordinates(df, lookup_csv_path = "../mapping_data/Stanox
                         how ='left')
     # drop observation w/o origin latitude and longitude, drop redundant columns
     origin_geo_locations = origin_geo_locations.dropna(subset=['Latitude', 'Longitude'])
-    origin_geo_locations = origin_geo_locations.drop(columns = ['Stanox', 'PLANNED_ORIG_LOC_CODE_AFF'])
+    origin_geo_locations = origin_geo_locations.drop(columns = ['Stanox'])
     new_column_names = {'Latitude': 'Lat_OR', 'Longitude': 'Lon_OR'}
     origin_geo_locations.rename(columns=new_column_names, inplace=True)
 
@@ -98,7 +98,7 @@ def mapping_stanox_geo_coordinates(df, lookup_csv_path = "../mapping_data/Stanox
                       how ='left')
     # drop observation w/o destination latitude and longitude, drop redundant columns
     origin_dest_locations = origin_dest_locations.dropna(subset=['Latitude', 'Longitude'])
-    origin_dest_locations = origin_dest_locations.drop(columns = ['Stanox', 'PLANNED_DEST_LOC_CODE_AFFECTED'])
+    origin_dest_locations = origin_dest_locations.drop(columns = ['Stanox'])
     new_column_names = {'Latitude': 'Lat_DES', 'Longitude': 'Lon_DES'}
     origin_dest_locations.rename(columns=new_column_names, inplace=True)
 
