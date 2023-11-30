@@ -1,6 +1,7 @@
 import pandas as pd
 
 from google.cloud import bigquery
+from google.oauth2 import service_account
 from pathlib import Path
 
 from params import *
@@ -28,7 +29,8 @@ def load_data_to_bq(
     table_name = f'{gcp_project}.{bq_dataset}.{table}'
     print(table_name)
     # Calling big query client
-    client = bigquery.Client()
+    credentials = service_account.Credentials.from_service_account_file('BQ_Service_Account.json')
+    client = bigquery.Client(credentials=credentials)
 
     write_mode = 'WRITE_APPEND'
     job_config = bigquery.LoadJobConfig(write_disposition=write_mode)
