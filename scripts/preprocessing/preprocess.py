@@ -21,7 +21,10 @@ def process_2019(df, unique_vals):
                      'NETWORK_RAIL_LOCATION_MANAGER', 'RESPONSIBLE_MANAGER',
                      'ATTRIBUTION_STATUS',
                      'INCIDENT_DESCRIPTION', 'REACTIONARY_REASON_CODE',
-                     'INCIDENT_RESPONSIBLE_TRAIN', 'EVENT_DATETIME'], inplace=True)
+                     'INCIDENT_RESPONSIBLE_TRAIN', 'EVENT_DATETIME',
+                     'ORIGIN_DEPARTURE_DATE','TRUST_TRAIN_ID_AFFECTED','TRAIN_SERVICE_CODE_AFFECTED',
+                     'SERVICE_GROUP_CODE_AFFECTED','APP_TIMETABLE_FLAG_AFF',
+                     'INCIDENT_REASON','START_STANOX','END_STANOX'], inplace=True)
     df.dropna(inplace=True)
 
     # Preprocessing of data
