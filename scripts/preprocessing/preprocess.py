@@ -15,17 +15,14 @@ from scaler import *
 def preprocessing_raw(df):
     # Cleaning then converting stanox codes into lon and lat values
     df_cleaned = cleaner(df)
-    df_lon_lat = mapping_stanox_geo_coordinates(df_cleaned)
-    return df_lon_lat
+    return df_cleaned
 
 def preprocessing(df, unique_vals):
     df_encoded = encoder(df)
     df = scaler(df_encoded)
-    df = missing_columns(df, unique_vals=unique_vals)
     print(f"done preprocessing with shape {df.shape}")
     return df
 
 def data_cleaning(df):
     df_clean = cleaner(df)
-    df_lon_lat = mapping_stanox_geo_coordinates(df_clean)
-    return df_lon_lat
+    return df_clean
