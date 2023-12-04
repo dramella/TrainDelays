@@ -29,7 +29,7 @@ def load_data_to_bq(
     table_name = f'{gcp_project}.{bq_dataset}.{table}'
     print(table_name)
     # Calling big query client
-    credentials = service_account.Credentials.from_service_account_file('BQ_Service_Account.json')
+    credentials = service_account.Credentials.from_service_account_file('train-delays-406412-925a4728545d.json')
     client = bigquery.Client(credentials=credentials)
 
     write_mode = 'WRITE_APPEND'
