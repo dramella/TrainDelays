@@ -42,13 +42,16 @@ def cleaner(df):
     sin_cos_df = df[['ORIG_MONTH','ORIG_DAY','ORIG_HOUR','ORIG_MINUTE','DEST_MONTH','DEST_DAY','DEST_HOUR','DEST_MINUTE']]
 
     for col in sin_cos_df.columns:
-        final_df = col_transform(col, df)
+        final_df = col_transform(col, df, sin_cos_df)
+
+    final_df = final_df[final_df['PFPI_MINUTES'] != 0]
 
     return final_df
 
 
 
-def col_transform(col_name, df):
+def col_transform(col_name, df, sin_cos_df):
+
     df[f'{col_name}_SIN'] = sin_cos_df[f'{col_name}'].apply(lambda x: math.sin(2 * math.pi * x / 60))
     df[f'{col_name}_COS'] = sin_cos_df[f'{col_name}'].apply(lambda x: math.cos(2 * math.pi * x / 60))
     df.drop(columns=[col_name], inplace=True)
