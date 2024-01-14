@@ -66,16 +66,16 @@ def network_rail_data_cleaner(df):
     df.drop(columns=['UNNAMED: 40'], errors='ignore', inplace=True)
     df.drop(columns=['UNNAMED: 41'], errors='ignore', inplace=True)
 
-
     # fix columns dtypes
-    df = df.astype('object')
+    df = df.astype('str')
     dates_cols = ['PLANNED_ORIG_GBTT_DATETIME_AFF',
     'PLANNED_ORIG_WTT_DATETIME_AFF',
     'PLANNED_DEST_GBTT_DATETIME_AFF',
     'PLANNED_DEST_WTT_DATETIME_AFF',
     'INCIDENT_CREATE_DATE',
     'INCIDENT_START_DATETIME',
-    'INCIDENT_END_DATETIME']
+    'INCIDENT_END_DATETIME',
+    'EVENT_DATETIME']
     df[dates_cols] = df[dates_cols].apply(pd.to_datetime)
     df['PFPI_MINUTES'] = pd.to_numeric(df['PFPI_MINUTES'])
     return df

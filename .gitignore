@@ -2,7 +2,7 @@
 Zone.Identifier
 .envrc
 data/raw
-
+*.plk
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
