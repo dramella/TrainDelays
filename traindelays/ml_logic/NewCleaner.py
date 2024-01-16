@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 def network_rail_data_cleaner(df):
@@ -34,28 +35,14 @@ def network_rail_data_cleaner(df):
     'TRUST_TRAIN_ID_REACT' : 'REACT_TRAIN',
     'TRUST_TRAIN_ID_RESP' : 'RESP_TRAIN'
     }
-    try:
-      df.rename(columns = cols_to_rename, inplace = True)
-      df_drop = df.drop(columns = ['FINANCIAL_YEAR_AND_PERIOD','TRUST_TRAIN_ID_AFFECTED',
-      'PLANNED_DEST_WTT_DATETIME_AFF','PLANNED_ORIG_GBTT_DATETIME_AFF',
-      'PLANNED_ORIG_WTT_DATETIME_AFF','PLANNED_DEST_GBTT_DATETIME_AFF',
-      'PLANNED_DEST_WTT_DATETIME_AFF','TRAIN_SCHEDULE_TYPE_AFFECTED',
-      'TRAIN_SERVICE_CODE_AFFECTED', 'SERVICE_GROUP_CODE_AFFECTED',
-      'APP_TIMETABLE_FLAG_AFF',
-      'TRACTION_TYPE_AFFECTED','TRAILING_LOAD_AFFECTED',
-      'TIMING_LOAD_AFFECTED','UNIT_CLASS_AFFECTED','INCIDENT_NUMBER',
-      'INCIDENT_CREATE_DATE', 'INCIDENT_START_DATETIME',
-      'INCIDENT_END_DATETIME', 'SECTION_CODE', 'INCIDENT_REASON',
-      'NETWORK_RAIL_LOCATION_MANAGER', 'RESPONSIBLE_MANAGER',
-      'ATTRIBUTION_STATUS', 'INCIDENT_EQUIPMENT', 'START_STANOX', 'END_STANOX',
-      'INCIDENT_DESCRIPTION', 'REACTIONARY_REASON_CODE',
-      'INCIDENT_RESPONSIBLE_TRAIN', 'EVENT_DATETIME',
-      'RESP_TRAIN','REACT_TRAIN'])
-    except:
-      pass
-    # select only London Overground trains
-    df = df[df['OPERATOR_AFFECTED'] == 'EK']
-    df = df[(df['PERFORMANCE_EVENT_CODE'] == 'A') | (df['PERFORMANCE_EVENT_CODE'] == 'M')]
+    df.rename(columns=cols_to_rename, inplace=True)
+    df.drop(columns=list(cols_to_rename.keys()), errors='ignore', inplace=True)
+
+    # select only delayed (not cancelled) London Overground trains, where the delay cause is sure
+    overground_delayed_trains = (df['OPERATOR_AFFECTED'] == 'EK') & (df['PERFORMANCE_EVENT_CODE'].isin(['A', 'M'])) & (df['ATTRIBUTION_STATUS'].str.contains('Attribution Agreed'))
+    df = df[overground_delayed_trains]
+    df.drop(columns=['OPERATOR_AFFECTED', 'PERFORMANCE_EVENT_CODE', 'ATTRIBUTION_STATUS'], inplace=True)
+
 
     # if minutes of delays are in two columns, sum them into one
     if 'NON_PFPI_MINUTES' in df.columns:
@@ -63,10 +50,12 @@ def network_rail_data_cleaner(df):
         df.drop(columns=['NON_PFPI_MINUTES'], inplace=True)
 
     # handles error columns
-    df.drop(columns=['UNNAMED: 40'], errors='ignore', inplace=True)
-    df.drop(columns=['UNNAMED: 41'], errors='ignore', inplace=True)
-
+    df.drop(columns=['UNNAMED: 40', 'UNNAMED: 41'], errors='ignore', inplace=True)
     # fix columns dtypes
+    false_float_column_list = ['PLANNED_ORIG_LOC_CODE_AFF','PLANNED_DEST_LOC_CODE_AFFECTED',
+                   'TRAIN_SERVICE_CODE_AFFECTED', 'UNIT_CLASS_AFFECTED', 'INCIDENT_NUMBER',
+                   'START_STANOX','END_STANOX']
+    df[false_float_column_list] = df[false_float_column_list].apply(pd.to_numeric, errors='coerce', downcast='integer')
     df = df.astype('str')
     dates_cols = ['PLANNED_ORIG_GBTT_DATETIME_AFF',
     'PLANNED_ORIG_WTT_DATETIME_AFF',
@@ -77,5 +66,7 @@ def network_rail_data_cleaner(df):
     'INCIDENT_END_DATETIME',
     'EVENT_DATETIME']
     df[dates_cols] = df[dates_cols].apply(pd.to_datetime)
-    df['PFPI_MINUTES'] = pd.to_numeric(df['PFPI_MINUTES'])
+    df['PFPI_MINUTES'] = pd.to_numeric(df['PFPI_MINUTES'],errors='ignore')
+    df = df.replace('nan', np.NaN)
+    df = df.dropna(subset=['PFPI_MINUTES'])
     return df

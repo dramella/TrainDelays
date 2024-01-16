@@ -2,6 +2,7 @@
 Zone.Identifier
 .envrc
 data/raw
+GCP/
 *.plk
 # Byte-compiled / optimized / DLL files
 __pycache__/

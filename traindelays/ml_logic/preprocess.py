@@ -1,25 +1,31 @@
+
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.compose import make_column_transformer
-from sklearn.compose import ColumnTransformer
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression
 
-def preprocessing_pipe():
-    num_transformer = MinMaxScaler()
+def drop_columns(df, columns_to_drop = ['START_STANOX', 'END_STANOX',
+    'PLANNED_ORIG_WTT_DATETIME_AFF', 'PLANNED_DEST_WTT_DATETIME_AFF',
+    'FINANCIAL_YEAR_AND_PERIOD', 'ORIGIN_DEPARTURE_DATE', 'INCIDENT_CREATE_DATE',
+    'INCIDENT_START_DATETIME', 'INCIDENT_END_DATETIME', 'TRAILING_LOAD_AFFECTED',
+    'TIMING_LOAD_AFFECTED', 'REACT_TRAIN', 'INCIDENT_RESPONSIBLE_TRAIN', 'RESP_TRAIN',
+    'INCIDENT_EQUIPMENT', 'INCIDENT_NUMBER', 'TRUST_TRAIN_ID_AFFECTED',
+    'INCIDENT_RESPONSIBLE_TRAIN', 'RESP_TRAIN', 'INCIDENT_EQUIPMENT',
+    'INCIDENT_NUMBER', 'INCIDENT_DESCRIPTION']):
+    """
+    Drops columns from a DataFrame if any of them is present.
 
-    cat_transformer = OneHotEncoder(handle_unknown='ignore', sparse_output = False)
+    Parameters:
+    - df (pd.DataFrame): The DataFrame to modify.
+    - columns_to_drop (list): List of column names to drop.
 
-    transformer = make_column_transformer((num_transformer, ['Lat_OR','Lon_OR', 'Lat_DES','Lon_DES']),
-                                  (cat_transformer, ['ENGLISH_DAY_TYPE', 'SERVICE_GROUP_CODE_AFFECTED', 'INCIDENT_REASON',
-                                                        'UNIT_CLASS_AFFECTED', 'TRAIN_SERVICE_CODE_AFFECTED',
-                                                     'PERFORMANCE_EVENT_CODE',
-                                                     'APP_TIMETABLE_FLAG_AFF']),
-                                remainder = 'passthrough')
+    Returns:
+    - pd.DataFrame: DataFrame with specified columns dropped.
+    """
+    existing_columns = set(df.columns)
+    columns_to_drop = [col for col in columns_to_drop if col in existing_columns]
 
-    pipe = Pipeline([('transformer', transformer)])
-    return pipe
+    if columns_to_drop:
+        df = df.drop(columns=columns_to_drop)
+        print(f"Dropped columns: {', '.join(columns_to_drop)}")
+    else:
+        print("No columns to drop.")
+
+    return df
