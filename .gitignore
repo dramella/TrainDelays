@@ -1,8 +1,9 @@
 .DS_Store
 Zone.Identifier
 .envrc
-data/
-
+data/raw
+GCP/
+*.plk
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
