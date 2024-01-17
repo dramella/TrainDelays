@@ -1,4 +1,5 @@
 
+import pytz
 import pandas as pd
 
 def drop_columns(df, columns_to_drop = ['START_STANOX', 'END_STANOX',
@@ -29,3 +30,11 @@ def drop_columns(df, columns_to_drop = ['START_STANOX', 'END_STANOX',
         print("No columns to drop.")
 
     return df
+
+def boxing_day_holiday_normalization(data):
+    data.loc[data['ENGLISH_DAY_TYPE'] == 'BD','ENGLISH_DAY_TYPE'] = 'BH'
+    return data
+
+def apply_dst_offset(row,zone='Europe/London'):
+    target_timezone = pytz.timezone(f'{zone}')
+    return row.apply(lambda dt: dt - target_timezone.dst(dt) if pd.notnull(dt) and dt.tzinfo is None else dt)

@@ -66,6 +66,7 @@ def test_set_check(identifier, test_ratio):
 
 # Function to split train/test
 def split_train_test_by_id(data, test_ratio, id_column):
+    data = data.sample(frac=1, random_state=42)
     if id_column == 'index':
         ids = pd.Series(data.index)
     else:
