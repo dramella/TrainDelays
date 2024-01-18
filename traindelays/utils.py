@@ -73,3 +73,8 @@ def split_train_test_by_id(data, test_ratio, id_column):
         ids = data[id_column]
     in_test_set = ids.apply(lambda id_: test_set_check(id_, test_ratio))
     return data.loc[~in_test_set], data.loc[in_test_set]
+
+def add_cyclical_features(data, col, max_val):
+    data[col + '_sin'] = np.sin(2 * np.pi * data[col] / max_val)
+    data[col + '_cos'] = np.cos(2 * np.pi * data[col] / max_val)
+    return data
