@@ -109,7 +109,6 @@ def clean_stanox_mapping_df(df):
     invalid_mask = (df['STANOX'] == "-")
     df = df[~invalid_mask]
     #drop redundant cols
-    df = df[['Location', 'STANOX']]
     return df
 
 def create_stanox_location_mapping(clean = True, to_csv = True):
