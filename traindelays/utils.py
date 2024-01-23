@@ -1,9 +1,6 @@
 from zlib import crc32
-import requests
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
-import string
 from google.cloud import bigquery
 
 def print_summary_stats(df, cols_list):
@@ -81,47 +78,3 @@ def add_cyclical_features(data, col, max_val):
     data[col + '_sin'] = np.sin(2 * np.pi * data[col] / max_val)
     data[col + '_cos'] = np.cos(2 * np.pi * data[col] / max_val)
     return data
-
-def scrape_stanox_codes():
-    """
-    Scrapes CRS, NLC, TIPLOC and STANOX Codes from http://www.railwaycodes.org.uk/.
-    Returns:
-        dataframe : dataframe containing the output scraped from all the letters.
-    """
-    # create a list of all letters
-    letters = list(string.ascii_lowercase)
-    # initialize list of dfs to fill with each letter dataframe
-    list_dfs = []
-    for letter in letters:
-        # for each letter build a custom URL
-        url = f"http://www.railwaycodes.org.uk/crs/crs{letter}.shtm"
-        # send request
-        response = requests.get(url=url, headers={"Accept-Language":"en-US"})
-        # if the request is successful
-        if response.status_code == 200:
-            # parse html page
-            soup = BeautifulSoup(response.content, "html.parser")
-            # select the table identified by the id "tablesort" from the soup
-            table = soup.find('table', {'id': 'tablesort'})
-            # initialize empty data and headers list
-            data = []
-            headers = []
-            # extract header row
-            header_row = table.find('tr')
-            for th in header_row.find_all('th'):
-                headers.append(th.text.strip())
-            # extract rows
-            for row in table.find_all('tr')[1:]:
-                row_data = [td.text.strip() for td in row.find_all('td')[:6]]
-                data.append(row_data)
-            # create df
-            df = pd.DataFrame(data, columns=headers)
-            df.replace(['', '-'], np.nan, inplace=True)
-            df = df.map(lambda x: x.split('\n')[0] if isinstance(x, str) else x)
-            # append df to list of dfs
-            list_dfs.append(df)
-        else:
-            # print the status code if the request failed
-            print(f"Letter {url} could not be scraped. Status Code: {response.status_code}")
-    # return a dataframe with all the information scraped for each page
-    return pd.concat(list_dfs)
