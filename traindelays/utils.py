@@ -2,6 +2,7 @@ from zlib import crc32
 import numpy as np
 import pandas as pd
 from google.cloud import bigquery
+from scipy.stats import chi2_contingency
 
 def print_summary_stats(df, cols_list):
     with pd.option_context('display.max_rows', None):
@@ -31,6 +32,8 @@ def load_data_to_bq(
     full_table_name = f"{gcp_project}.{bq_dataset}.{table}"
 
     data.columns = [f"_{column}" if not str(column)[0].isalpha() and not str(column)[0] == "_" else str(column) for column in data.columns]
+    data.columns = data.columns.str.replace(" ", "_").str.upper()
+
 
     client = bigquery.Client.from_service_account_json(credentials)
 
@@ -78,3 +81,30 @@ def add_cyclical_features(data, col, max_val):
     data[col + '_sin'] = np.sin(2 * np.pi * data[col] / max_val)
     data[col + '_cos'] = np.cos(2 * np.pi * data[col] / max_val)
     return data
+
+
+def cramers_v(confusion_matrix):
+    chi2 = chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.sum().sum()
+    phi2 = chi2 / n
+    r, k = confusion_matrix.shape
+    phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
+    rcorr = r - ((r - 1)**2) / (n - 1)
+    kcorr = k - ((k - 1)**2) / (n - 1)
+    return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
+
+def cramer_matrix(df,subset=None):
+    if subset is None:
+        columns = df.columns
+    else:
+        columns = subset
+    cramer_matrix = pd.DataFrame(index=columns, columns=columns)
+
+    for col1 in columns:
+        for col2 in columns:
+            confusion_matrix = pd.crosstab(df[col1], df[col2])
+            cramer_value = cramers_v(confusion_matrix)
+            cramer_matrix.loc[col1, col2] = cramer_value
+
+    cramer_matrix = cramer_matrix.apply(pd.to_numeric)
+    return cramer_matrix
