@@ -1,12 +1,11 @@
-
-import pytz
-import numpy as np
 import pandas as pd
-import os
-os.chdir(os.environ.get('PROJECT_PATH'))
-from traindelays.params import *
-from traindelays import utils as u
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+import pytz
+from sklearn.utils import _safe_indexing
+from sklearn.externals import joblib
+from joblib import Parallel, delayed
+from sklearn.base import clone
 
 class DropColumnsTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, columns_to_drop=None):
@@ -20,12 +19,20 @@ class DropColumnsTransformer(BaseEstimator, TransformerMixin):
         columns_to_drop = [col for col in self.columns_to_drop if col in existing_columns]
 
         if columns_to_drop:
-            X = X.drop(columns=columns_to_drop)
+            X = X.drop(columns=columns_to_drop, errors='ignore')
             print(f"Dropped columns: {', '.join(columns_to_drop)}")
         else:
             print("No columns to drop.")
 
         return X
+
+    def get_params(self, deep=True):
+        return {"columns_to_drop": self.columns_to_drop}
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
 
 
 class BoxingDayHolidayNormalization(BaseEstimator, TransformerMixin):
@@ -36,6 +43,13 @@ class BoxingDayHolidayNormalization(BaseEstimator, TransformerMixin):
         X_transformed = X.copy()
         X_transformed.loc[X_transformed['ENGLISH_DAY_TYPE'] == 'BD', 'ENGLISH_DAY_TYPE'] = 'BH'
         return X_transformed
+
+    def get_params(self, deep=True):
+        return {}
+
+    def set_params(self, **parameters):
+        return self
+
 
 class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, zone='Europe/London'):
@@ -51,13 +65,21 @@ class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
 
         return X.apply(apply_dst_offset_row, axis=1)
 
+    def get_params(self, deep=True):
+        return {"zone": self.zone}
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+
 class CyclicalFeatureTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, col, max_val):
         self.col = col
         self.max_val = max_val
 
     def fit(self, X, y=None):
-        # No need for fitting in this case
         return self
 
     def transform(self, X):
@@ -66,6 +88,14 @@ class CyclicalFeatureTransformer(BaseEstimator, TransformerMixin):
         X_transformed[self.col + '_cos'] = np.cos(2 * np.pi * X_transformed[self.col] / self.max_val)
         return X_transformed
 
+    def get_params(self, deep=True):
+        return {"col": self.col, "max_val": self.max_val}
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
 
 class CleanObservationsTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
@@ -73,18 +103,22 @@ class CleanObservationsTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         # Drop rows with NaN values in the specified columns
-        X_cleaned = X.dropna(subset=['PLANNED_ORIG_GBTT_DATETIME_AFF', 'PLANNED_DEST_GBTT_DATETIME_AFF'])
+        X_cleaned = X.dropna()
         return X_cleaned
 
-import pandas as pd
-from sklearn.base import BaseEstimator, TransformerMixin
+    def get_params(self, deep=True):
+        return {}
+
+    def set_params(self, **parameters):
+        return self
+
 
 class GeographicalFeaturesTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, service_account, gcp_project, bq_dataset, geo_coordinates_table_id):
-        self.service_account = SERVICE_ACCOUNT
-        self.gcp_project = GCP_PROJECT
-        self.bq_dataset = BQ_DATASET
-        self.geo_coordinates_table_id = GEO_COOORDINATES_TABLE_ID
+        self.service_account = service_account
+        self.gcp_project = gcp_project
+        self.bq_dataset = bq_dataset
+        self.geo_coordinates_table_id = geo_coordinates_table_id
 
     def fit(self, X, y=None):
         # You can perform any necessary setup or computations here
@@ -113,6 +147,19 @@ class GeographicalFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         return X
 
+    def get_params(self, deep=True):
+        return {
+            "service_account": self.service_account,
+            "gcp_project": self.gcp_project,
+            "bq_dataset": self.bq_dataset,
+            "geo_coordinates_table_id": self.geo_coordinates_table_id
+        }
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
 
 class ResponsibleManagerGroupingTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, threshold):
@@ -131,13 +178,21 @@ class ResponsibleManagerGroupingTransformer(BaseEstimator, TransformerMixin):
         )
         return X_copy
 
+    def get_params(self, deep=True):
+        return {"threshold": self.threshold}
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+
 class IncidentReasonMappingTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        # Fetch environment variables
-        self.service_account = SERVICE_ACCOUNT
-        self.gcp_project = GCP_PROJECT
-        self.bq_dataset = BQ_DATASET
-        self.table = INCIDENT_REASON_CODES_TABLE_ID
+    def __init__(self, service_account, gcp_project, bq_dataset, table):
+        self.service_account = service_account
+        self.gcp_project = gcp_project
+        self.bq_dataset = bq_dataset
+        self.table = table
 
     def fit(self, X, y=None):
         # No fitting necessary for this transformer
@@ -164,6 +219,20 @@ class IncidentReasonMappingTransformer(BaseEstimator, TransformerMixin):
 
         return X
 
+    def get_params(self, deep=True):
+        return {
+            "service_account": self.service_account,
+            "gcp_project": self.gcp_project,
+            "bq_dataset": self.bq_dataset,
+            "table": self.table
+        }
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+
 class ReactionaryReasonCodeMapping(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
@@ -172,3 +241,9 @@ class ReactionaryReasonCodeMapping(BaseEstimator, TransformerMixin):
         X_transformed = X.copy()
         X_transformed['REACTIONARY_REASON_CODE'] = X_transformed['REACTIONARY_REASON_CODE'].map(lambda c: 'Primary' if c is None else 'Reactionary')
         return X_transformed
+
+    def get_params(self, deep=True):
+        return {}
+
+    def set_params(self, **parameters):
+        return self
