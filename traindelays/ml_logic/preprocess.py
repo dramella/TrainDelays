@@ -3,36 +3,38 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 import pytz
 from sklearn.utils import _safe_indexing
-from sklearn.externals import joblib
+import joblib
 from joblib import Parallel, delayed
 from sklearn.base import clone
+from traindelays import utils as u
+
+from sklearn.base import BaseEstimator, TransformerMixin
+
+from sklearn.base import BaseEstimator, TransformerMixin
 
 class DropColumnsTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, columns_to_drop=None):
-        self.columns_to_drop = columns_to_drop
-
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        existing_columns = set(X.columns)
-        columns_to_drop = [col for col in self.columns_to_drop if col in existing_columns]
-
-        if columns_to_drop:
-            X = X.drop(columns=columns_to_drop, errors='ignore')
-            print(f"Dropped columns: {', '.join(columns_to_drop)}")
-        else:
-            print("No columns to drop.")
-
-        return X
+        X_dropped = X.drop(columns=X.columns, errors='ignore')
+        print(f"Dropped all columns.")
+        return X_dropped
 
     def get_params(self, deep=True):
-        return {"columns_to_drop": self.columns_to_drop}
+        return {}
 
     def set_params(self, **parameters):
-        for parameter, value in parameters.items():
-            setattr(self, parameter, value)
         return self
+
+    def get_feature_names_out(self, input_features=None):
+        return []  # No remaining columns
+
+    def fit_transform(self, X, y=None, **fit_params):
+        self.fit(X, y)
+        return self.transform(X)
+
+
 
 
 class BoxingDayHolidayNormalization(BaseEstimator, TransformerMixin):
@@ -50,6 +52,8 @@ class BoxingDayHolidayNormalization(BaseEstimator, TransformerMixin):
     def set_params(self, **parameters):
         return self
 
+    def get_feature_names_out(self, input_features=None):
+        return list(input_features)
 
 class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, zone='Europe/London'):
@@ -73,38 +77,23 @@ class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
             setattr(self, parameter, value)
         return self
 
+    def get_feature_names_out(self, input_features=None):
+        return list(input_features)
 
 class CyclicalFeatureTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, col, max_val):
-        self.col = col
-        self.max_val = max_val
-
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
         X_transformed = X.copy()
-        X_transformed[self.col + '_sin'] = np.sin(2 * np.pi * X_transformed[self.col] / self.max_val)
-        X_transformed[self.col + '_cos'] = np.cos(2 * np.pi * X_transformed[self.col] / self.max_val)
+
+        for col in X_transformed.columns:
+            max_values = {'day':7,'week':53,'year':360}
+            for d in max_values:
+                X_transformed[col + '_' + d + '_sin'] = np.sin(2 * np.pi * X_transformed[col].dt.dayofweek / max_values[d])
+                X_transformed[col + '_' + d + '_cos'] = np.cos(2 * np.pi * X_transformed[col].dt.dayofweek / max_values[d])
+
         return X_transformed
-
-    def get_params(self, deep=True):
-        return {"col": self.col, "max_val": self.max_val}
-
-    def set_params(self, **parameters):
-        for parameter, value in parameters.items():
-            setattr(self, parameter, value)
-        return self
-
-
-class CleanObservationsTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X):
-        # Drop rows with NaN values in the specified columns
-        X_cleaned = X.dropna()
-        return X_cleaned
 
     def get_params(self, deep=True):
         return {}
@@ -160,6 +149,8 @@ class GeographicalFeaturesTransformer(BaseEstimator, TransformerMixin):
             setattr(self, parameter, value)
         return self
 
+    def get_feature_names_out(self, input_features=None):
+        return list(input_features) + ['ORIG_LAT', 'ORIG_LON', 'DEST_LAT', 'DEST_LON']
 
 class ResponsibleManagerGroupingTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, threshold):
@@ -185,6 +176,8 @@ class ResponsibleManagerGroupingTransformer(BaseEstimator, TransformerMixin):
         for parameter, value in parameters.items():
             setattr(self, parameter, value)
         return self
+    def get_feature_names_out(self, input_features=None):
+        return list(input_features)
 
 
 class IncidentReasonMappingTransformer(BaseEstimator, TransformerMixin):
@@ -232,8 +225,15 @@ class IncidentReasonMappingTransformer(BaseEstimator, TransformerMixin):
             setattr(self, parameter, value)
         return self
 
+    def get_feature_names_out(self, input_features=None):
+        # Assuming transformation drops or modifies 'INCIDENT_REASON' and 'Incident_Reason' columns
+        remaining_columns = [col for col in input_features if col not in ['INCIDENT_REASON', 'Incident_Reason']]
+        return remaining_columns
 
 class ReactionaryReasonCodeMapping(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
     def fit(self, X, y=None):
         return self
 
@@ -247,3 +247,8 @@ class ReactionaryReasonCodeMapping(BaseEstimator, TransformerMixin):
 
     def set_params(self, **parameters):
         return self
+
+    def get_feature_names_out(self, input_features=None):
+        # Assuming you are only modifying the 'REACTIONARY_REASON_CODE' column
+        output_features = input_features.copy()
+        return output_features
