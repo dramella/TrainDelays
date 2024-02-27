@@ -77,19 +77,19 @@ class BoxingDayHolidayNormalization(BaseEstimator, TransformerMixin):
         return list(input_features)
 
 class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, zone='Europe/London',time_columns=['PLANNED_ORIG_GBTT_DATETIME_AFF', 'PLANNED_DEST_GBTT_DATETIME_AFF']):
+    def __init__(self, zone='Europe/London', time_columns=['PLANNED_ORIG_GBTT_DATETIME_AFF', 'PLANNED_DEST_GBTT_DATETIME_AFF']):
         self.zone = zone
         self.time_columns = time_columns
-
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        def apply_dst_offset_row(row):
-            target_timezone = pytz.timezone(self.zone)
-            return row.apply(lambda dt: dt - target_timezone.dst(dt) if pd.notnull(dt) and dt.tzinfo is None else dt)
-        X[self.time_columns] = X[self.time_columns].apply(apply_dst_offset_row, axis=1)
+        target_timezone = pytz.timezone(self.zone)
+
+        for col in self.time_columns:
+            X[col] = X[col].apply(lambda dt: dt - target_timezone.dst(dt) if pd.notnull(dt) and dt.tzinfo is None else dt)
+
         return X
 
     def get_params(self, deep=True):
@@ -102,6 +102,8 @@ class ApplyDstOffsetTransformer(BaseEstimator, TransformerMixin):
 
     def get_feature_names_out(self, input_features=None):
         return list(input_features)
+
+
 
 class CyclicalFeatureTransformer(BaseEstimator, TransformerMixin):
     def __init__(self,time_columns = ['PLANNED_ORIG_GBTT_DATETIME_AFF', 'PLANNED_DEST_GBTT_DATETIME_AFF']):
@@ -187,11 +189,11 @@ class ResponsibleManagerGroupingTransformer(BaseEstimator, TransformerMixin):
         self.other_managers_labels = None
 
     def fit(self, X, y=None):
-        value_counts = X[self.manager_col].value_counts()
-        self.other_managers_labels = value_counts[value_counts < self.threshold].index
         return self
 
     def transform(self, X):
+        value_counts = X[self.manager_col].value_counts()
+        self.other_managers_labels = value_counts[value_counts < self.threshold].index
         X_copy = X.copy()
         X_copy[self.manager_col] = X_copy[self.manager_col].apply(
             lambda w: "Other" if w in self.other_managers_labels else w
@@ -234,7 +236,7 @@ class IncidentReasonMappingTransformer(BaseEstimator, TransformerMixin):
             incident_reason_mapping[['Incident_Reason', 'Incident_Category_Super_Group_Code']],
             right_on='Incident_Reason',
             left_on=self.incident_reason_col,
-            how='inner'
+            how='left'
         )
 
         # Drop unnecessary columns
