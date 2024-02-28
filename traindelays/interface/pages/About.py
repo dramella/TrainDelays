@@ -26,15 +26,16 @@ background_style = """
 }
 """
 
-html_header = """
-<div class="tw-relative tw-flex tw-items-end tw-h-40 md:tw-h-48 lg:tw-h-56 xl:tw-h-64 2xl:tw-h-72 snipcss-SsN7R">
-  <div class="tw-container tw-relative tw-mb-8 md:tw-mb-12">
-    <h1 class="tw-text-3xl md:tw-text-5xl lg:tw-text-6xl tw-font-bold tw-text-white">
-      About us
-    </h1>
-  </div>
-</div>
-"""
+# Page title and intro
+box_style = "border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; background-color: #F0F2F6;"
+st.markdown(f"""
+    <div style="{box_style}">
+        <h1 style="font-family: 'Noto Sans', sans-serif; color: black; font-size: 36px; text-align: center;">
+            About us
+        </h1>
+    </div>
+""", unsafe_allow_html=True)
+
 
 css_header = """
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap');
@@ -48,7 +49,6 @@ body {
 """
 
 st.write(f'<style>{background_style}</style>', unsafe_allow_html=True)
-st.write(f'{html_header}', unsafe_allow_html=True)
 st.write(f'<style>{css_header}</style>', unsafe_allow_html=True)
 
 # set CSS style to round all images except the one with the "exclude-me" tag (i.e. LinkedIn icons)
