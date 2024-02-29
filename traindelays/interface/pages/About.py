@@ -62,7 +62,7 @@ st.markdown("""
 st.markdown('<div class="box">', unsafe_allow_html=True)
 col1, mid, col2 = st.columns([1, 2, 20], gap="medium")
 with col1:
-    st.image(os.path.abspath('images/ltrudeau.jpeg'), width=105)
+    st.image(os.path.abspath('traindelays/interface/images/ltrudeau.jpeg'), width=105)
 
 with col2:
     st.markdown("**Lewis Trudeau**")
@@ -77,7 +77,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('<div class="box">', unsafe_allow_html=True)
 col1, mid, col2 = st.columns([1, 2, 20], gap="medium")
 with col1:
-    st.image(os.path.abspath('images/dramella.jpeg'), width=105)
+    st.image(os.path.abspath('traindelays/interface/images/dramella.jpeg'), width=105)
 
 with col2:
     st.markdown("**Debora Ramella**")
@@ -92,7 +92,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('<div class="box">', unsafe_allow_html=True)
 col1, mid, col2 = st.columns([1, 2, 20], gap="medium")
 with col1:
-    st.image(os.path.abspath('images/ben.jpeg'), width=105)
+    st.image(os.path.abspath('traindelays/interface/images/ben.jpeg'), width=105)
 
 with col2:
     st.markdown("**Ben Fairbairn**")
@@ -107,7 +107,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('<div class="box">', unsafe_allow_html=True)
 col1, mid, col2 = st.columns([1, 2, 20], gap="medium")
 with col1:
-    st.image(os.path.abspath('images/joel.jpeg'), width=105)
+    st.image(os.path.abspath('traindelays/interface/images/joel.jpeg'), width=105)
 
 with col2:
     st.markdown("**Joel Okwuchukwu**")
