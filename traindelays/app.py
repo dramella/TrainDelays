@@ -22,10 +22,10 @@ box_style = "border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padd
 st.markdown(f"""
     <div style="{box_style}">
         <h1 style="font-family: 'Noto Sans', sans-serif; color: black; font-size: 36px; text-align: center;">
-            How long will your train be delayed?
+            How long will a train be delayed?
         </h1>
         <p style="font-family: 'Noto Sans', sans-serif; color: black; font-size: 18px; text-align: center; line-height: 1.5;">
-            Stay ahead on your journey! This dashboard provides real-time insights into delays, helping you forecast how much your train might be delayed.
+            Stay on track with network operations! This dashboard offers real-time insights into train delays, empowering rail operators to anticipate and assess expected delays.
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -132,6 +132,28 @@ with st.form(key='params_for_api'):
     reactionary_reason = st.checkbox('Is the delay at the site of the incident?')
     event_code = st.checkbox('Is the delay automatically logged?')
     st.form_submit_button('Predict')
+
+params = dict(departure_station = departure_station,
+              arrival_station = arrival_station,
+              departure_date = departure_date,
+              departure_time = departure_time,
+              arrival_date = arrival_date,
+              arrival_time = arrival_time,
+              type_day = type_day,
+              train_service_group_code = train_service_group_code,
+              train_schedule_type = train_schedule_type,
+              train_unit_class = train_unit_class,
+              train_manager = train_manager,
+              incident_reason = incident_reason,
+              reactionary_reason = reactionary_reason,
+              event_code = event_code)
+
+#network_rail_pred_api_url = '...'
+#response = requests.get(network_rail_pred_api_url, params=params)
+#prediction = response.json()
+#pred = prediction['fare']
+#st.header(f'Fare amount: ${round(pred, 2)}')
+
 # Specify what pages should be shown in the sidebar, and their titles and icons
 show_pages(
     [
