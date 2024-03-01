@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 from google.cloud import bigquery
 from scipy.stats import chi2_contingency
+from google.cloud import storage
+import joblib
+from tempfile import TemporaryFile
 
 def print_summary_stats(df, cols_list):
     with pd.option_context('display.max_rows', None):
@@ -103,3 +106,15 @@ def cramer_matrix(df,subset=None):
 
     cramer_matrix = cramer_matrix.apply(pd.to_numeric)
     return cramer_matrix
+
+
+def download_model_from_GCP_storage(service_account, bucket_name, model_bucket):
+    storage_client = storage.Client.from_service_account_json(service_account)
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(model_bucket)
+    with TemporaryFile() as temp_file:
+        blob.download_to_file(temp_file)
+        temp_file.seek(0)
+        model = joblib.load(temp_file)
+
+    return model
