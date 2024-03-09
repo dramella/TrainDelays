@@ -2,6 +2,8 @@ from fastapi import FastAPI
 import pandas as pd
 from traindelays import utils as u
 from traindelays.params import *
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 app = FastAPI()
 @app.get("/predict")
@@ -37,10 +39,21 @@ def predict(
     X_pred.drop(columns=['departure_date', 'departure_time', 'arrival_date', 'arrival_time'], inplace=True)
 
     # Geographical conversion before pre-processing
-    lon_lat_df = u.read_data_from_bq(credentials = SERVICE_ACCOUNT,
-                  gcp_project = GCP_PROJECT, bq_dataset = BQ_DATASET,
-                  table = GEO_COOORDINATES_TABLE_ID)
+    lon_lat_df = u.read_data_from_bq(credentials = os.environ.get('SERVICE_ACCOUNT'),
+                  gcp_project = os.environ.get('GCP_PROJECT_ID'), bq_dataset = os.environ.get('BQ_DATASET'),
+                  table = os.environ.get('GEO_COOORDINATES_TABLE_ID'))
 
+    X_pred = pd.merge(X_pred,lon_lat_df,left_on = 'departure_station',right_on='Station_Name')
+    X_pred.drop(columns=['departure_station','Station_Name','Latitude', 'Longitude'],inplace=True)
+    X_pred.rename({'Stanox':'PLANNED_ORIG_LOC_CODE_AFF'})
+
+    X_pred = pd.merge(X_pred,lon_lat_df,left_on = 'arrival_station',right_on='Station_Name')
+    X_pred.drop(columns=['arrival_station','Station_Name','Latitude', 'Longitude'],inplace=True)
+    X_pred.rename({'Stanox':'PLANNED_DEST_LOC_CODE_AFFECTED'})
+
+    # Extracting value from input strings
+    X_pred['ENGLISH_DAY_TYPE'] = type_day.split()[0]
+    X_pred['TRAIN_SERVICE_GROUP_CODE'] = train_service_group_code.split()[0]
 
     #model = app.state.model
    # X_processed = preprocess_features(X_pred)
