@@ -27,15 +27,20 @@ def predict(
     # 💡 Optional trick instead of writing each column name manually
     X_pred = pd.DataFrame(locals(), index=[0])
 
-    # Convert to datettime
-    X_pred['departure_date'] = pd.to_datetime(X_pred['departure_date'])
-    X_pred['departure_time'] = pd.to_datetime(X_pred['departure_time'])
-    X_pred['arrival_date'] = pd.to_datetime(X_pred['arrival_date'])
-    X_pred['arrival_time'] = pd.to_datetime(X_pred['arrival_time'])
+    # Datetime conversion before pre-processing
+    from datetime import datetime, date, time
+    X_pred['departure_time'] = time(X_pred['departure_time'])
+    X_pred['arrival_date'] = date(X_pred['arrival_date'])
+    X_pred['arrival_time'] = time(X_pred['arrival_time'])
+    X_pred['PLANNED_ORIG_GBTT_DATETIME_AFF'] = datetime.combine(X_pred['departure_date'], X_pred['departure_time'])
+    X_pred['PLANNED_DEST_GBTT_DATETIME_AFF'] = datetime.combine(X_pred['arrival_date'], X_pred['arrival_time'])
+    X_pred.drop(columns=['departure_date', 'departure_time', 'arrival_date', 'arrival_time'], inplace=True)
 
-    #lon_lat_df = u.read_data_from_bq(credentials = SERVICE_ACCOUNT,
-    #              gcp_project = GCP_PROJECT, bq_dataset = BQ_DATASET,
-    #              table = GEO_COOORDINATES_TABLE_ID)
+    # Geographical conversion before pre-processing
+    lon_lat_df = u.read_data_from_bq(credentials = SERVICE_ACCOUNT,
+                  gcp_project = GCP_PROJECT, bq_dataset = BQ_DATASET,
+                  table = GEO_COOORDINATES_TABLE_ID)
+
 
     #model = app.state.model
    # X_processed = preprocess_features(X_pred)
