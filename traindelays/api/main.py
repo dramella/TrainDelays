@@ -52,8 +52,11 @@ def predict(
     X_pred.rename({'Stanox':'PLANNED_DEST_LOC_CODE_AFFECTED'})
 
     # Extracting value from input strings
-    X_pred['ENGLISH_DAY_TYPE'] = type_day.split()[0]
-    X_pred['TRAIN_SERVICE_GROUP_CODE'] = train_service_group_code.split()[0]
+    X_pred['type_day'] = X_pred['type_day'].str.split()[0]
+    X_pred['train_service_group_code'] = X_pred['train_service_group_code'].str.split()[0]
+    X_pred.rename({'type_day':'ENGLISH_DAY_TYPE','train_service_group_code':'TRAIN_SERVICE_GROUP_CODE'})
+    return X_pred
+
 
     #model = app.state.model
    # X_processed = preprocess_features(X_pred)
