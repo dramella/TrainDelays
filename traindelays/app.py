@@ -153,7 +153,7 @@ params = dict(departure_station = departure_station,
 #prediction = response.json()
 #pred = prediction['fare']
 #st.header(f'Fare amount: ${round(pred, 2)}')
-
+st.text(f'{params}')
 # Specify what pages should be shown in the sidebar, and their titles and icons
 show_pages(
     [

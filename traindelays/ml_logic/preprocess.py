@@ -271,7 +271,7 @@ class ReactionaryReasonCodeMapping(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         X_transformed = X.copy()
-        X_transformed[self.react_reason_code] = X_transformed[self.react_reason_code].map(lambda c: 'Primary' if c is None else 'Reactionary')
+        X_transformed[self.react_reason_code] = X_transformed[self.react_reason_code].map(lambda c: 'Primary' if c in [None, True] else 'Reactionary')
         return X_transformed
 
     def get_params(self, deep=True):
