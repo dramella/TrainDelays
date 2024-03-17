@@ -61,9 +61,6 @@ def predict(
                             },
                         axis=1)
     X_preproc = p.pipe.transform(X_pred)
-
-
-    #model = app.state.model
-   # X_processed = preprocess_features(X_pred)
-   # y_pred = model.predict(X_processed)
-   # return dict(fare_amount=float(y_pred))
+    model = u.download_model_from_GCP_storage(os.environ.get('SERVICE_ACCOUNT'), os.environ.get('BUCKET_NAME'), os.environ.get('MODEL_BUCKET'))
+    y_pred = model.predict(X_preproc)
+    return dict(fare_amount=float(y_pred))
