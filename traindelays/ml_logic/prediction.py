@@ -1,40 +1,49 @@
-from fastapi import FastAPI
+import os
 import pandas as pd
-from traindelays import utils as u
-from traindelays.params import *
-from traindelays.ml_logic import preprocess as p
-from dotenv import load_dotenv
-load_dotenv('.env')
-
-app = FastAPI()
-@app.get("/predict")
-def predict(
-    departure_station = str,
-    arrival_station = str,
-    departure_date = str,
-    departure_time = str,
-    arrival_date = str,
-    arrival_time = str,
-    type_day = str,
-    train_service_group_code = str,
-    train_schedule_type = str,
-    train_unit_class = str,
-    train_manager = str,
-    incident_reason = str,
-    reactionary_reason = str,
-    event_code = str):
+import ml_logic.utils as u
+import os
+import ml_logic.preprocess as p
+# 💡 Optional trick instead of writing each column name manually
+def predict_new(
+    departure_station,
+    arrival_station,
+    departure_date,
+    departure_time,
+    arrival_date,
+    arrival_time,
+    type_day,
+    train_service_group_code,
+    train_schedule_type,
+    train_unit_class,
+    train_manager,
+    incident_reason,
+    reactionary_reason,
+    event_code):
     """
     Make a single delay prediction.
     """
 
     # 💡 Optional trick instead of writing each column name manually
-    X_pred = pd.DataFrame(locals(), index=[0])
-
-    # Datetime conversion before pre-processing
+    X_pred = pd.DataFrame({
+        'departure_station': [departure_station],
+        'arrival_station': [arrival_station],
+        'departure_date': [departure_date],
+        'departure_time': [departure_time],
+        'arrival_date': [arrival_date],
+        'arrival_time': [arrival_time],
+        'type_day': [type_day],
+        'train_service_group_code': [train_service_group_code],
+        'train_schedule_type': [train_schedule_type],
+        'train_unit_class': [train_unit_class],
+        'train_manager': [train_manager],
+        'incident_reason': [incident_reason],
+        'reactionary_reason': [reactionary_reason],
+        'event_code': [event_code]
+    })    # Datetime conversion before pre-processing
     from datetime import datetime, date, time
     # dates transformation
-    X_pred['PLANNED_ORIG_GBTT_DATETIME_AFF'] = pd.to_datetime(X_pred['departure_date']) + pd.to_timedelta(X_pred['departure_time'].astype(str))
-    X_pred['PLANNED_DEST_GBTT_DATETIME_AFF'] = pd.to_datetime(X_pred['arrival_date']) + pd.to_timedelta(X_pred['arrival_time'].astype(str))
+    X_pred['PLANNED_ORIG_GBTT_DATETIME_AFF'] = X_pred.apply(lambda row: datetime.combine(row['departure_date'], row['departure_time']), axis=1)
+    X_pred['PLANNED_DEST_GBTT_DATETIME_AFF'] = X_pred.apply(lambda row: datetime.combine(row['arrival_date'], row['arrival_time']), axis=1)
     X_pred.drop(columns=['departure_date', 'departure_time', 'arrival_date', 'arrival_time'], inplace=True)
     lon_lat_df = u.read_data_from_bq(credentials = os.environ.get('SERVICE_ACCOUNT'),
                     gcp_project = os.environ.get('GCP_PROJECT_ID'), bq_dataset = os.environ.get('BQ_DATASET'),
