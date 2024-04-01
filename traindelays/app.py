@@ -4,8 +4,9 @@ import os
 import numpy as np
 import pandas as pd
 import datetime
-from params import *
-import utils as u
+from ml_logic.params import *
+from ml_logic.prediction import *
+import ml_logic.utils as u
 from dotenv import load_dotenv
 load_dotenv('.env')
 
@@ -148,12 +149,21 @@ params = dict(departure_station = departure_station,
               reactionary_reason = reactionary_reason,
               event_code = event_code)
 
-#network_rail_pred_api_url = '...'
-#response = requests.get(network_rail_pred_api_url, params=params)
-#prediction = response.json()
-#pred = prediction['fare']
-#st.header(f'Fare amount: ${round(pred, 2)}')
-st.text(f'{params}')
+pred = predict_new(departure_station,
+    arrival_station,
+    departure_date,
+    departure_time,
+    arrival_date,
+    arrival_time,
+    type_day,
+    train_service_group_code,
+    train_schedule_type,
+    train_unit_class,
+    train_manager,
+    incident_reason,
+    reactionary_reason,
+    event_code)
+st.header(f'Fare amount: ${round(pred, 2)}')
 # Specify what pages should be shown in the sidebar, and their titles and icons
 show_pages(
     [

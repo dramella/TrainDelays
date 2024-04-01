@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 import pytz
-from traindelays import utils as u
-from traindelays.params import *
-from traindelays.ml_logic import preprocess as p
+from ml_logic.params import *
+from ml_logic import utils as u
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler,OneHotEncoder
@@ -299,13 +298,13 @@ col_transf = ColumnTransformer(transformers=[
     ('categorical', categorical_steps, make_column_selector(dtype_include='object'))
     ])
 
-pipe = Pipeline([('daylight_saving',p.ApplyDstOffsetTransformer()),
-                 ('cyclical_features',p.CyclicalFeatureTransformer()),
-                 ('boxing_day_correction', p.BoxingDayHolidayNormalization()),
-                 ('responsible_manager',p.ResponsibleManagerGroupingTransformer()),
-                 ('reactionary_reason_code', p.ReactionaryReasonCodeMapping()),
-                 ('incident_reason', p.IncidentReasonMappingTransformer()),
-                 ('drop_redundant_cols', p.DropColumnsTransformer()),
-                 ('geo_coordinates', p.GeographicalFeaturesTransformer()),
+pipe = Pipeline([('daylight_saving',ApplyDstOffsetTransformer()),
+                 ('cyclical_features',CyclicalFeatureTransformer()),
+                 ('boxing_day_correction', BoxingDayHolidayNormalization()),
+                 ('responsible_manager',ResponsibleManagerGroupingTransformer()),
+                 ('reactionary_reason_code', ReactionaryReasonCodeMapping()),
+                 ('incident_reason', IncidentReasonMappingTransformer()),
+                 ('drop_redundant_cols', DropColumnsTransformer()),
+                 ('geo_coordinates', GeographicalFeaturesTransformer()),
                  ('type_specific_tranform', col_transf)
                 ])
